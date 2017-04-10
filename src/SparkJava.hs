@@ -1,4 +1,4 @@
-{-# LANGUAGE MagicHash, FlexibleContexts #-}
+{-# LANGUAGE MagicHash, FlexibleContexts, TypeOperators #-}
 
 module SparkJava where
 
@@ -17,20 +17,20 @@ foreign import java unsafe params :: JString -> Java Request (Maybe JString)
 
 -- Wrappers for functional interfaces
 
-foreign import java unsafe "@wrapper handle" mkRoute :: (Request -> Response -> Java (Route a) Object) -> Route a
+foreign import java unsafe "@wrapper handle" mkRoute :: (a <: Object) => (Request -> Response -> Java (Route a) Object) -> Route a
 foreign import java unsafe "@wrapper handle" filter :: (Request -> Response -> Java Filter ()) -> Filter
-foreign import java unsafe "@wrapper render" mkResTransformer :: (a -> Java (ResponseTransformer a) String) -> ResponseTransformer a
+foreign import java unsafe "@wrapper render" mkResTransformer :: (a <: Object) => (a -> Java (ResponseTransformer a) String) -> ResponseTransformer a
 
 -- Helpers for handling up/downcasting in generic functional interfaces
 
-route :: (Extends a Object) => (Request -> Response -> Java (Route a) a) -> Route a
+route :: (Class a) => (Request -> Response -> Java (Route a) a) -> Route a
 route handler = mkRoute (\req res -> fmap superCast $ handler req res)
-resTransformer :: (Extends a Object) => (a -> Java (ResponseTransformer a) String) -> ResponseTransformer a
+resTransformer :: (Class a) => (a -> Java (ResponseTransformer a) String) -> ResponseTransformer a
 resTransformer transformer = mkResTransformer (\val -> transformer $ unsafeCast val)
 
 -- Static methods in Spark
 
 foreign import java unsafe "@static spark.Spark.get" get :: String -> Route String -> IO ()
 foreign import java unsafe "@static spark.Spark.connect" connect :: String -> Route String -> IO ()
-foreign import java unsafe "@static spark.Spark.connect" connectTransformed :: String -> Route a -> ResponseTransformer a -> IO ()
+foreign import java unsafe "@static spark.Spark.connect" connectTransformed :: (a <: Object) => String -> Route a -> ResponseTransformer a -> IO ()
 foreign import java unsafe "@static spark.Spark.port" port :: Int -> IO ()
