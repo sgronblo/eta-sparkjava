@@ -56,6 +56,7 @@ foreign import java unsafe "@static spark.Spark.connect" connect :: String -> Ro
 foreign import java unsafe "@static spark.Spark.connect" connectTransformed :: (a <: Object) => JString -> Route a -> ResponseTransformer a -> IO ()
 foreign import java unsafe "@static spark.Spark.port" port :: Int -> IO ()
 foreign import java unsafe "@static spark.Spark.awaitInitialization" awaitInitialization :: IO ()
+foreign import java unsafe "@static spark.Spark.stop" stop :: IO ()
 
 -- Re-exported static methods
 
